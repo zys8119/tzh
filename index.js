@@ -40,7 +40,7 @@ exports.__esModule = true;
 var process_1 = require("process");
 var child_process_1 = require("child_process");
 var axios_1 = require("axios");
-var fanyiQuery = function (query) { return __awaiter(void 0, void 0, void 0, function () {
+var fanyiQuery = function (query, isZhToEN) { return __awaiter(void 0, void 0, void 0, function () {
     var data;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -63,8 +63,8 @@ var fanyiQuery = function (query) { return __awaiter(void 0, void 0, void 0, fun
                     method: "POST",
                     data: {
                         query: query,
-                        from: "en",
-                        to: "zh",
+                        from: isZhToEN ? "zh" : "en",
+                        to: isZhToEN ? "en" : "zh",
                         reference: "",
                         corpusIds: [],
                         qcSettings: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
@@ -80,12 +80,12 @@ var fanyiQuery = function (query) { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 var translate = function (translateQuery) { return __awaiter(void 0, void 0, void 0, function () {
-    var argvA, isfanyi, argvAText, query, result, commend, tgt_split_1, query_split, query_split_max_line_length_1, e_1;
-    var _a, _b, _c, _d, _e, _f, _g, _h;
-    return __generator(this, function (_j) {
-        switch (_j.label) {
+    var argvA, isfanyi, isZhToEN, argvAText, query, result, commend, tgt_split_1, query_split, query_split_max_line_length_1, e_1;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    return __generator(this, function (_o) {
+        switch (_o.label) {
             case 0:
-                _j.trys.push([0, 5, , 6]);
+                _o.trys.push([0, 5, , 6]);
                 argvA = process_1.argv.slice(2);
                 if (!translateQuery && argvA.length === 0) {
                     console.log("请输入需要翻译的内容");
@@ -97,36 +97,41 @@ var translate = function (translateQuery) { return __awaiter(void 0, void 0, voi
                     argvA = argvA.slice(1);
                     isfanyi = true;
                 }
+                isZhToEN = false;
+                if (["--en", "-en"].includes((_h = (_f = (_e = argvA === null || argvA === void 0 ? void 0 : argvA[0]) === null || _e === void 0 ? void 0 : _e.trim) === null || _f === void 0 ? void 0 : (_g = _f.call(_e)).toLowerCase) === null || _h === void 0 ? void 0 : _h.call(_g))) {
+                    argvA = argvA.slice(1);
+                    isZhToEN = true;
+                }
                 argvAText = translateQuery || argvA.join(" ");
                 query = "";
                 result = "";
                 if (!(translateQuery || isfanyi)) return [3 /*break*/, 2];
                 query = argvAText;
-                return [4 /*yield*/, fanyiQuery(argvAText)];
+                return [4 /*yield*/, fanyiQuery(argvAText, isZhToEN)];
             case 1:
-                result = _j.sent();
+                result = _o.sent();
                 return [3 /*break*/, 4];
             case 2:
                 commend = (0, child_process_1.execSync)(argvAText);
                 query = commend.toString();
-                return [4 /*yield*/, fanyiQuery(query)];
+                return [4 /*yield*/, fanyiQuery(query, isZhToEN)];
             case 3:
-                result = _j.sent();
-                _j.label = 4;
+                result = _o.sent();
+                _o.label = 4;
             case 4:
                 result = result
                     .split("\n")
                     .filter(function (e) { return /^data:/.test(e); })
                     .map(function (e) { return JSON.parse(e.replace(/^data:/, "").trim()); })
                     .filter(function (e) { var _a; return ["Translating", "GetKeywordsSucceed"].includes((_a = e === null || e === void 0 ? void 0 : e.data) === null || _a === void 0 ? void 0 : _a.event); });
-                tgt_split_1 = (_h = (_g = (_f = (_e = result
+                tgt_split_1 = (_m = (_l = (_k = (_j = result
                     .filter(function (e) { var _a; return ["Translating"].includes((_a = e === null || e === void 0 ? void 0 : e.data) === null || _a === void 0 ? void 0 : _a.event); })
                     .map(function (e) {
                     var _a;
                     return ({
                         tgt: (_a = e.data.list) === null || _a === void 0 ? void 0 : _a.map(function (e) { return e.dst; }).join(" \n ")
                     });
-                })) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.tgt) === null || _g === void 0 ? void 0 : _g.split) === null || _h === void 0 ? void 0 : _h.call(_g, "\n");
+                })) === null || _j === void 0 ? void 0 : _j[0]) === null || _k === void 0 ? void 0 : _k.tgt) === null || _l === void 0 ? void 0 : _l.split) === null || _m === void 0 ? void 0 : _m.call(_l, "\n");
                 query_split = query.split("\n");
                 query_split_max_line_length_1 = query_split.reduce(function (a, b) { return Math.max(a, b.length); }, 0);
                 console.log(query_split
@@ -140,7 +145,7 @@ var translate = function (translateQuery) { return __awaiter(void 0, void 0, voi
                     .join("\n"));
                 return [3 /*break*/, 6];
             case 5:
-                e_1 = _j.sent();
+                e_1 = _o.sent();
                 console.error(e_1);
                 console.error(e_1.message);
                 return [3 /*break*/, 6];

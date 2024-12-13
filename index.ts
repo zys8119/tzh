@@ -3,7 +3,7 @@ import { argv } from "process";
 import { execSync } from "child_process";
 import axios from "axios";
 
-const fanyiQuery: any = async (query: any) => {
+const fanyiQuery: any = async (query: any, isZhToEN: boolean) => {
   const { data } = await axios({
     url: "https://fanyi.baidu.com/ait/text/translate",
     headers: {
@@ -25,8 +25,8 @@ const fanyiQuery: any = async (query: any) => {
     method: "POST",
     data: {
       query,
-      from: "en",
-      to: "zh",
+      from: isZhToEN ? "zh" : "en",
+      to: isZhToEN ? "en" : "zh",
       reference: "",
       corpusIds: [],
       qcSettings: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
@@ -54,16 +54,21 @@ const translate = async (translateQuery?: any) => {
       argvA = argvA.slice(1);
       isfanyi = true;
     }
+    let isZhToEN = false;
+    if (["--en", "-en"].includes(argvA?.[0]?.trim?.().toLowerCase?.())) {
+      argvA = argvA.slice(1);
+      isZhToEN = true;
+    }
     const argvAText = translateQuery || argvA.join(" ");
     let query = "";
     let result: any = "";
     if (translateQuery || isfanyi) {
       query = argvAText;
-      result = await fanyiQuery(argvAText);
+      result = await fanyiQuery(argvAText, isZhToEN);
     } else {
       const commend = execSync(argvAText);
       query = commend.toString();
-      result = await fanyiQuery(query);
+      result = await fanyiQuery(query, isZhToEN);
     }
     result = result
       .split("\n")
