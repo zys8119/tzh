@@ -1,5 +1,5 @@
 {
-  "name": "zh",
+  "name": "tzh",
   "version": "1.0.0",
   "main": "index.ts",
   "bin": "./bin/index.ts",
