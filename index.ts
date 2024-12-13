@@ -1,4 +1,4 @@
-//#!/usr/bin/env ts-node
+#!/usr/bin/env ts-node
 import { argv } from "process";
 import { execSync } from "child_process";
 import axios from "axios";
