@@ -1,7 +1,8 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node
 import { argv } from "process";
 import { execSync } from "child_process";
 import axios from "axios";
+
 const fanyiQuery: any = async (query: any) => {
   const { data } = await axios({
     url: "https://fanyi.baidu.com/ait/text/translate",
@@ -36,25 +37,27 @@ const fanyiQuery: any = async (query: any) => {
   });
   return data as any;
 };
-(async function () {
+const translate = async (translateQuery?: any) => {
   try {
     let argvA = argv.slice(2);
-    if (argvA.length === 0) {
+    if (!translateQuery && argvA.length === 0) {
       console.log("请输入需要翻译的内容");
       return;
     }
     let isfanyi = false;
     // 从命令行获取需要翻译的内容
     if (
-      ["--query", "-q", "-w", "-word"].includes(argvA[0].trim().toLowerCase())
+      ["--query", "-q", "-w", "-word"].includes(
+        argvA?.[0]?.trim?.().toLowerCase?.()
+      )
     ) {
       argvA = argvA.slice(1);
       isfanyi = true;
     }
-    const argvAText = argvA.join(" ");
+    const argvAText = translateQuery || argvA.join(" ");
     let query = "";
     let result: any = "";
-    if (isfanyi) {
+    if (translateQuery || isfanyi) {
       query = argvAText;
       result = await fanyiQuery(argvAText);
     } else {
@@ -64,15 +67,15 @@ const fanyiQuery: any = async (query: any) => {
     }
     result = result
       .split("\n")
-      .filter((e) => /^data:/.test(e))
+      .filter((e: any) => /^data:/.test(e))
       .map((e: string) => JSON.parse(e.replace(/^data:/, "").trim()))
-      .filter((e) =>
-        ["Translating", "GetKeywordsSucceed"].includes(e.data.event)
+      .filter((e: any) =>
+        ["Translating", "GetKeywordsSucceed"].includes(e?.data?.event)
       );
     const tgt_split = result
-      .filter((e) => ["Translating"].includes(e.data.event))
-      .map((e) => ({
-        tgt: e.data.list?.map((e) => e.dst).join(" \n "),
+      .filter((e: any) => ["Translating"].includes(e?.data?.event))
+      .map((e: any) => ({
+        tgt: e.data.list?.map((e: any) => e.dst).join(" \n "),
       }))?.[0]
       ?.tgt?.split?.("\n");
     const query_split = query.split("\n");
@@ -83,20 +86,36 @@ const fanyiQuery: any = async (query: any) => {
     console.log(
       query_split
         .map(
-          (e, k) =>
+          (e: any, k) =>
             `${e.padEnd(query_split_max_line_length, "-")}-> ${
               tgt_split?.[k] || ""
             }`
         )
         .filter(
-          (e) =>
+          (e: any) =>
             e.trim() !==
             "->".padStart(query_split_max_line_length + 2, "-").trim()
         )
         .join("\n")
     );
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
     console.error(e.message);
+  }
+};
+(async function () {
+  if (process.stdin.isTTY) {
+    // 命令行模式
+    await translate();
+  } else {
+    // 管道模式
+    process.stdin.setEncoding("utf8");
+    let input = "";
+    process.stdin.on("data", (chunk) => {
+      input += chunk;
+    });
+    process.stdin.on("end", async () => {
+      await translate(input);
+    });
   }
 })();
